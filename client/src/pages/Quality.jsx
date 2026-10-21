@@ -1,12 +1,29 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import axios from "axios";
 import { Link } from "react-router-dom";
+import {
+    ShieldCheck,
+    Plus,
+    RefreshCw,
+    Pencil,
+    Trash2,
+    X,
+    Check,
+    Search,
+    AlertTriangle,
+    XCircle,
+    CheckCircle2,
+    Info,
+    SlidersHorizontal,
+    FileCheck
+} from "lucide-react";
 
 function Quality() {
     const [quality, setQuality] = useState([]);
-
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
+    const [searchTerm, setSearchTerm] = useState("");
+    const [statusFilter, setStatusFilter] = useState("ALL");
 
     const [editingQuality, setEditingQuality] = useState(null);
 
@@ -19,20 +36,13 @@ function Quality() {
         defectCount: ""
     });
 
-    // =====================================================
-    // FETCH QUALITY DATA
-    // =====================================================
-
     const fetchQuality = async () => {
         try {
             setLoading(true);
             setError("");
 
-            const response = await axios.get(
-                "http://localhost:5000/api/quality"
-            );
-
-            setQuality(response.data);
+            const response = await axios.get("http://localhost:5000/api/quality");
+            setQuality(response.data || []);
         } catch (err) {
             console.error(err);
             setError("Unable to load quality inspection data.");
@@ -45,22 +55,13 @@ function Quality() {
         fetchQuality();
     }, []);
 
-    // =====================================================
-    // FORM HANDLING
-    // =====================================================
-
     const handleChange = (e) => {
         const { name, value } = e.target;
-
         setFormData((prev) => ({
             ...prev,
             [name]: value
         }));
     };
-
-    // =====================================================
-    // EDIT
-    // =====================================================
 
     const startEdit = (item) => {
         setEditingQuality(item._id);
@@ -82,7 +83,6 @@ function Quality() {
 
     const cancelEdit = () => {
         setEditingQuality(null);
-
         setFormData({
             batchId: "",
             paperType: "",
@@ -109,342 +109,220 @@ function Quality() {
                 }
             );
 
-            alert("Quality inspection updated successfully.");
-
             cancelEdit();
             fetchQuality();
         } catch (err) {
             console.error(err);
-
-            alert(
-                err.response?.data?.message ||
-                    "Failed to update quality inspection."
-            );
+            alert(err.response?.data?.message || "Failed to update quality inspection.");
         }
     };
-
-    // =====================================================
-    // DELETE
-    // =====================================================
 
     const deleteQuality = async (id) => {
         const confirmDelete = window.confirm(
-            "Are you sure you want to delete this quality inspection?"
+            "Are you sure you want to delete this quality inspection record?"
         );
-
-        if (!confirmDelete) {
-            return;
-        }
+        if (!confirmDelete) return;
 
         try {
-            await axios.delete(
-                `http://localhost:5000/api/quality/${id}`
-            );
-
-            alert("Quality inspection deleted successfully.");
-
+            await axios.delete(`http://localhost:5000/api/quality/${id}`);
             fetchQuality();
         } catch (err) {
             console.error(err);
-
-            alert(
-                err.response?.data?.message ||
-                    "Failed to delete quality inspection."
-            );
+            alert(err.response?.data?.message || "Failed to delete quality inspection.");
         }
     };
 
-    // =====================================================
-    // STATUS HELPERS
-    // =====================================================
-
-    const getStatusClass = (status) => {
-        if (status === "PASS") {
-            return "quality-pass";
+    const getStatusBadge = (status) => {
+        switch (status) {
+            case "PASS":
+                return (
+                    <span className="badge badge-running">
+                        <CheckCircle2 size={11} />
+                        PASS
+                    </span>
+                );
+            case "WARNING":
+                return (
+                    <span className="badge badge-maintenance">
+                        <AlertTriangle size={11} />
+                        WARNING
+                    </span>
+                );
+            case "FAIL":
+                return (
+                    <span className="badge badge-critical">
+                        <XCircle size={11} />
+                        FAIL
+                    </span>
+                );
+            default:
+                return <span className="badge badge-idle">{status}</span>;
         }
-
-        if (status === "WARNING") {
-            return "quality-warning";
-        }
-
-        if (status === "FAIL") {
-            return "quality-fail";
-        }
-
-        return "";
     };
 
-    const getStatusIcon = (status) => {
-        if (status === "PASS") {
-            return "✓";
-        }
-
-        if (status === "WARNING") {
-            return "!";
-        }
-
-        if (status === "FAIL") {
-            return "×";
-        }
-
-        return "";
-    };
-
-    // =====================================================
-    // SUMMARY
-    // =====================================================
-
-    const passCount = quality.filter(
-        (item) => item.qualityStatus === "PASS"
-    ).length;
-
-    const warningCount = quality.filter(
-        (item) => item.qualityStatus === "WARNING"
-    ).length;
-
-    const failCount = quality.filter(
-        (item) => item.qualityStatus === "FAIL"
-    ).length;
-
+    // Summary calculations
+    const passCount = quality.filter((i) => i.qualityStatus === "PASS").length;
+    const warningCount = quality.filter((i) => i.qualityStatus === "WARNING").length;
+    const failCount = quality.filter((i) => i.qualityStatus === "FAIL").length;
     const totalCount = quality.length;
+    const passRate = totalCount > 0 ? ((passCount / totalCount) * 100).toFixed(1) : "0.0";
 
-    const passRate =
-        totalCount > 0
-            ? ((passCount / totalCount) * 100).toFixed(1)
-            : "0.0";
+    // Filter logic
+    const filteredQuality = useMemo(() => {
+        return quality.filter((item) => {
+            const matchesSearch =
+                item.batchId?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                item.paperType?.toLowerCase().includes(searchTerm.toLowerCase());
+            const matchesStatus =
+                statusFilter === "ALL" || item.qualityStatus === statusFilter;
+            return matchesSearch && matchesStatus;
+        });
+    }, [quality, searchTerm, statusFilter]);
 
-    // =====================================================
-    // LOADING
-    // =====================================================
-
-    if (loading) {
+    if (loading && quality.length === 0) {
         return (
-            <div className="loading-state">
-                <div className="loading-spinner"></div>
-
-                <p>
-                    Loading quality inspection data...
-                </p>
+            <div className="page-loading-skeleton">
+                <div className="spinner-industrial"></div>
+                <span>Auditing paper inspection sheets...</span>
             </div>
         );
     }
 
-    // =====================================================
-    // PAGE
-    // =====================================================
-
     return (
-        <div className="page">
-
-            {/* =================================================
-                PAGE HEADER
-            ================================================= */}
-
+        <div className="page-container">
+            {/* PAGE HEADER */}
             <div className="page-header">
-
-                <div>
-
-                    <div className="breadcrumb">
-                        Quality / Inspection
+                <div className="page-header-content">
+                    <div className="page-eyebrow">
+                        <span>Quality Assurance</span>
+                        <span className="eyebrow-divider">/</span>
+                        <span>Inspection Logs</span>
                     </div>
-
-                    <h2>
-                        Quality Inspection
-                    </h2>
-
-                    <p>
-                        Monitor paper quality and inspection results
+                    <h1 className="page-title">Quality Assurance & Inspection</h1>
+                    <p className="page-subtitle">
+                        Standard testing criteria, caliper thickness, tensile strength, and defect classification
                     </p>
-
                 </div>
 
-                <Link
-                    to="/add-quality"
-                    className="primary-btn"
-                >
-                    <span>+</span>
-                    New Inspection
-                </Link>
-
-            </div>
-
-
-            {/* =================================================
-                SUMMARY CARDS
-            ================================================= */}
-
-            <div className="summary-grid">
-
-                <div className="summary-card quality-summary-card">
-
-                    <div className="summary-card-icon pass-icon">
-                        ✓
-                    </div>
-
-                    <div>
-                        <span className="summary-label">
-                            Passed
-                        </span>
-
-                        <strong className="text-green">
-                            {passCount}
-                        </strong>
-                    </div>
-
-                </div>
-
-
-                <div className="summary-card quality-summary-card">
-
-                    <div className="summary-card-icon warning-icon">
-                        !
-                    </div>
-
-                    <div>
-                        <span className="summary-label">
-                            Warning
-                        </span>
-
-                        <strong className="text-orange">
-                            {warningCount}
-                        </strong>
-                    </div>
-
-                </div>
-
-
-                <div className="summary-card quality-summary-card">
-
-                    <div className="summary-card-icon fail-icon">
-                        ×
-                    </div>
-
-                    <div>
-                        <span className="summary-label">
-                            Failed
-                        </span>
-
-                        <strong className="text-red">
-                            {failCount}
-                        </strong>
-                    </div>
-
-                </div>
-
-
-                <div className="summary-card">
-
-                    <span className="summary-label">
-                        Pass Rate
-                    </span>
-
-                    <strong>
-                        {passRate}%
-                    </strong>
-
-                    <div className="quality-mini-bar">
-                        <div
-                            style={{
-                                width: `${passRate}%`
-                            }}
-                        ></div>
-                    </div>
-
-                </div>
-
-            </div>
-
-
-            {/* =================================================
-                ERROR
-            ================================================= */}
-
-            {error && (
-                <div className="error-message">
-                    {error}
-                </div>
-            )}
-
-
-            {/* =================================================
-                EDIT PANEL
-            ================================================= */}
-
-            {editingQuality && (
-
-                <div className="edit-panel">
-
-                    <div className="edit-panel-header">
-
-                        <div>
-
-                            <h3>
-                                Edit Quality Inspection
-                            </h3>
-
-                            <p>
-                                Update inspection measurements and
-                                defect information.
-                            </p>
-
-                        </div>
-
-                        <button
-                            className="close-btn"
-                            onClick={cancelEdit}
-                        >
-                            ×
-                        </button>
-
-                    </div>
-
-
-                    <form
-                        className="form-grid"
-                        onSubmit={updateQuality}
+                <div className="page-header-actions">
+                    <button
+                        className="btn btn-secondary"
+                        onClick={fetchQuality}
+                        title="Reload quality records"
                     >
+                        <RefreshCw size={15} className={loading ? "spin-icon" : ""} />
+                        <span>Refresh</span>
+                    </button>
+                    <Link to="/add-quality" className="btn btn-primary">
+                        <Plus size={16} />
+                        <span>New Inspection</span>
+                    </Link>
+                </div>
+            </div>
 
-                        <div className="form-group">
+            {/* SUMMARY KPIS */}
+            <div className="kpi-grid">
+                <div className="kpi-card" onClick={() => setStatusFilter("PASS")} role="button" tabIndex={0}>
+                    <div className="kpi-header">
+                        <span className="kpi-label">PASSED BATCHES</span>
+                        <div className="kpi-icon-wrapper kpi-icon-green">
+                            <CheckCircle2 size={16} />
+                        </div>
+                    </div>
+                    <div className="kpi-body">
+                        <div className="kpi-value text-running">{passCount}</div>
+                        <span className="kpi-hint">0–5 defects per roll</span>
+                    </div>
+                </div>
 
-                            <label>
-                                Batch ID
-                            </label>
+                <div className="kpi-card" onClick={() => setStatusFilter("WARNING")} role="button" tabIndex={0}>
+                    <div className="kpi-header">
+                        <span className="kpi-label">WARNINGS</span>
+                        <div className="kpi-icon-wrapper kpi-icon-amber">
+                            <AlertTriangle size={16} />
+                        </div>
+                    </div>
+                    <div className="kpi-body">
+                        <div className="kpi-value text-amber">{warningCount}</div>
+                        <span className="kpi-hint">6–10 defects (requires review)</span>
+                    </div>
+                </div>
 
+                <div className="kpi-card" onClick={() => setStatusFilter("FAIL")} role="button" tabIndex={0}>
+                    <div className="kpi-header">
+                        <span className="kpi-label">FAILED BATCHES</span>
+                        <div className="kpi-icon-wrapper kpi-icon-critical">
+                            <XCircle size={16} />
+                        </div>
+                    </div>
+                    <div className="kpi-body">
+                        <div className="kpi-value text-critical">{failCount}</div>
+                        <span className="kpi-hint">&gt;10 defects (rejected/repulp)</span>
+                    </div>
+                </div>
+
+                <div className="kpi-card" onClick={() => setStatusFilter("ALL")} role="button" tabIndex={0}>
+                    <div className="kpi-header">
+                        <span className="kpi-label">OVERALL PASS RATE</span>
+                        <div className="kpi-icon-wrapper kpi-icon-navy">
+                            <ShieldCheck size={16} />
+                        </div>
+                    </div>
+                    <div className="kpi-body">
+                        <div className="kpi-value">{passRate}%</div>
+                        <div className="meter-track mt-1">
+                            <div
+                                className="meter-fill fill-optimal"
+                                style={{ width: `${Math.min(Number(passRate), 100)}%` }}
+                            ></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* EDIT DRAWER / FORM */}
+            {editingQuality && (
+                <div className="edit-banner-card">
+                    <div className="edit-banner-header">
+                        <div className="edit-banner-title-group">
+                            <div className="edit-banner-tag">EDIT INSPECTION</div>
+                            <h3>Modify Quality Report: {formData.batchId}</h3>
+                            <p>Update physical measurement parameters and recorded defect numbers</p>
+                        </div>
+                        <button className="btn-icon" onClick={cancelEdit} title="Cancel">
+                            <X size={18} />
+                        </button>
+                    </div>
+
+                    <form className="form-grid" onSubmit={updateQuality}>
+                        <div className="form-field">
+                            <label className="form-label">Batch ID</label>
                             <input
+                                className="form-input"
                                 type="text"
                                 name="batchId"
                                 value={formData.batchId}
                                 onChange={handleChange}
                                 required
                             />
-
                         </div>
 
-
-                        <div className="form-group">
-
-                            <label>
-                                Paper Type
-                            </label>
-
+                        <div className="form-field">
+                            <label className="form-label">Paper Type / Grade</label>
                             <input
+                                className="form-input"
                                 type="text"
                                 name="paperType"
                                 value={formData.paperType}
                                 onChange={handleChange}
                                 required
                             />
-
                         </div>
 
-
-                        <div className="form-group">
-
-                            <label>
-                                Thickness (mm)
-                            </label>
-
+                        <div className="form-field">
+                            <label className="form-label">Caliper Thickness (mm)</label>
                             <input
+                                className="form-input"
                                 type="number"
                                 step="0.01"
                                 min="0"
@@ -453,17 +331,12 @@ function Quality() {
                                 onChange={handleChange}
                                 required
                             />
-
                         </div>
 
-
-                        <div className="form-group">
-
-                            <label>
-                                Moisture (%)
-                            </label>
-
+                        <div className="form-field">
+                            <label className="form-label">Moisture Content (%)</label>
                             <input
+                                className="form-input"
                                 type="number"
                                 step="0.1"
                                 min="0"
@@ -472,17 +345,12 @@ function Quality() {
                                 onChange={handleChange}
                                 required
                             />
-
                         </div>
 
-
-                        <div className="form-group">
-
-                            <label>
-                                Strength
-                            </label>
-
+                        <div className="form-field">
+                            <label className="form-label">Tensile Strength (kN/m)</label>
                             <input
+                                className="form-input"
                                 type="number"
                                 min="0"
                                 name="strength"
@@ -490,17 +358,12 @@ function Quality() {
                                 onChange={handleChange}
                                 required
                             />
-
                         </div>
 
-
-                        <div className="form-group">
-
-                            <label>
-                                Defect Count
-                            </label>
-
+                        <div className="form-field">
+                            <label className="form-label">Defect Count</label>
                             <input
+                                className="form-input"
                                 type="number"
                                 min="0"
                                 name="defectCount"
@@ -508,337 +371,202 @@ function Quality() {
                                 onChange={handleChange}
                                 required
                             />
-
                         </div>
 
-
-                        <div className="form-actions">
-
-                            <button
-                                type="button"
-                                className="secondary-btn"
-                                onClick={cancelEdit}
-                            >
+                        <div className="form-actions-full">
+                            <button type="button" className="btn btn-outline" onClick={cancelEdit}>
                                 Cancel
                             </button>
-
-                            <button
-                                type="submit"
-                                className="primary-btn"
-                            >
-                                Save Changes
+                            <button type="submit" className="btn btn-primary">
+                                <Check size={16} />
+                                <span>Save Changes</span>
                             </button>
-
                         </div>
-
                     </form>
-
                 </div>
-
             )}
 
+            {/* CONTROLS BAR: SEARCH & STATUS FILTER */}
+            <div className="table-controls-bar">
+                <div className="filter-group-left">
+                    <div className="search-input-wrapper">
+                        <Search size={15} className="search-icon" />
+                        <input
+                            type="text"
+                            className="search-input"
+                            placeholder="Filter by batch or paper type..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                        />
+                        {searchTerm && (
+                            <button className="search-clear" onClick={() => setSearchTerm("")}>
+                                <X size={13} />
+                            </button>
+                        )}
+                    </div>
 
-            {/* =================================================
-                TABLE HEADER
-            ================================================= */}
-
-            <div className="section-header">
-
-                <div>
-
-                    <h3>
-                        Inspection Records
-                    </h3>
-
-                    <p>
-                        Quality measurements and inspection status
-                    </p>
-
+                    <div className="status-tabs">
+                        {["ALL", "PASS", "WARNING", "FAIL"].map((st) => (
+                            <button
+                                key={st}
+                                className={`status-tab ${statusFilter === st ? "active" : ""}`}
+                                onClick={() => setStatusFilter(st)}
+                            >
+                                {st === "ALL" ? "All Results" : st}
+                            </button>
+                        ))}
+                    </div>
                 </div>
 
-                <button
-                    className="secondary-btn"
-                    onClick={fetchQuality}
-                >
-                    ↻ Refresh
-                </button>
-
+                <div className="text-secondary text-xs font-mono">
+                    Showing {filteredQuality.length} of {quality.length} inspections
+                </div>
             </div>
 
-
-            {/* =================================================
-                QUALITY TABLE
-            ================================================= */}
-
-            <div className="table-container">
-
-                {quality.length > 0 ? (
-
-                    <table className="data-table">
-
+            {/* QUALITY TABLE */}
+            <div className="table-wrapper">
+                {filteredQuality.length > 0 ? (
+                    <table className="enterprise-table">
                         <thead>
-
                             <tr>
-
-                                <th>
-                                    Batch ID
-                                </th>
-
-                                <th>
-                                    Paper Type
-                                </th>
-
-                                <th>
-                                    Thickness
-                                </th>
-
-                                <th>
-                                    Moisture
-                                </th>
-
-                                <th>
-                                    Strength
-                                </th>
-
-                                <th>
-                                    Defects
-                                </th>
-
-                                <th>
-                                    Status
-                                </th>
-
-                                <th>
-                                    Inspected
-                                </th>
-
-                                <th>
-                                    Actions
-                                </th>
-
+                                <th>Batch Identifier</th>
+                                <th>Grade</th>
+                                <th>Thickness</th>
+                                <th>Moisture</th>
+                                <th>Strength</th>
+                                <th>Defect Count</th>
+                                <th>Quality Classification</th>
+                                <th>Inspected At</th>
+                                <th className="text-right">Actions</th>
                             </tr>
-
                         </thead>
-
-
                         <tbody>
-
-                            {quality.map((item) => (
-
+                            {filteredQuality.map((item) => (
                                 <tr key={item._id}>
-
                                     <td>
-                                        <strong>
+                                        <span className="font-mono font-semibold text-primary">
                                             {item.batchId}
-                                        </strong>
-                                    </td>
-
-                                    <td>
-                                        {item.paperType}
-                                    </td>
-
-                                    <td>
-                                        {item.thickness} mm
-                                    </td>
-
-                                    <td>
-                                        {item.moisture}%
-                                    </td>
-
-                                    <td>
-                                        {item.strength}
-                                    </td>
-
-                                    <td>
-                                        {item.defectCount}
-                                    </td>
-
-                                    <td>
-
-                                        <span
-                                            className={`quality-status-badge ${getStatusClass(
-                                                item.qualityStatus
-                                            )}`}
-                                        >
-
-                                            <span className="quality-status-icon">
-                                                {getStatusIcon(
-                                                    item.qualityStatus
-                                                )}
-                                            </span>
-
-                                            {item.qualityStatus}
-
                                         </span>
-
                                     </td>
-
                                     <td>
-                                        {item.inspectedAt
-                                            ? new Date(
-                                                  item.inspectedAt
-                                              ).toLocaleString(
-                                                  "en-IN"
-                                              )
-                                            : "-"}
+                                        <span className="text-secondary">{item.paperType}</span>
                                     </td>
-
                                     <td>
-
-                                        <div className="table-actions">
-
+                                        <span className="font-mono text-secondary">{item.thickness} mm</span>
+                                    </td>
+                                    <td>
+                                        <span className="font-mono text-secondary">{item.moisture}%</span>
+                                    </td>
+                                    <td>
+                                        <span className="font-mono text-secondary">{item.strength}</span>
+                                    </td>
+                                    <td>
+                                        <span
+                                            className={`font-mono font-semibold ${
+                                                Number(item.defectCount || 0) > 10
+                                                    ? "text-critical"
+                                                    : Number(item.defectCount || 0) > 5
+                                                    ? "text-amber"
+                                                    : "text-running"
+                                            }`}
+                                        >
+                                            {item.defectCount}
+                                        </span>
+                                    </td>
+                                    <td>{getStatusBadge(item.qualityStatus)}</td>
+                                    <td>
+                                        <span className="text-secondary font-mono text-xs">
+                                            {item.inspectedAt
+                                                ? new Date(item.inspectedAt).toLocaleString("en-IN", {
+                                                      day: "2-digit",
+                                                      month: "short",
+                                                      hour: "2-digit",
+                                                      minute: "2-digit"
+                                                  })
+                                                : "-"}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div className="table-actions-end">
                                             <button
-                                                className="edit-btn"
-                                                onClick={() =>
-                                                    startEdit(item)
-                                                }
+                                                className="btn-table-action"
+                                                onClick={() => startEdit(item)}
+                                                title="Edit inspection"
                                             >
-                                                Edit
+                                                <Pencil size={14} />
                                             </button>
-
                                             <button
-                                                className="delete-btn"
-                                                onClick={() =>
-                                                    deleteQuality(
-                                                        item._id
-                                                    )
-                                                }
+                                                className="btn-table-action text-critical"
+                                                onClick={() => deleteQuality(item._id)}
+                                                title="Delete inspection"
                                             >
-                                                Delete
+                                                <Trash2 size={14} />
                                             </button>
-
                                         </div>
-
                                     </td>
-
                                 </tr>
-
                             ))}
-
                         </tbody>
-
                     </table>
-
                 ) : (
-
-                    <div className="empty-state">
-
-                        <div className="empty-icon">
-                            ✓
+                    <div className="empty-state-card">
+                        <div className="empty-state-icon">
+                            <ShieldCheck size={32} />
                         </div>
-
-                        <h3>
-                            No Quality Inspections
-                        </h3>
-
-                        <p>
-                            Add your first quality inspection
-                            to start monitoring paper quality.
-                        </p>
-
-                        <Link
-                            to="/add-quality"
-                            className="primary-btn"
-                        >
-                            + New Inspection
+                        <h3>No Quality Inspection Records</h3>
+                        <p>No tests logged matching your active criteria.</p>
+                        <Link to="/add-quality" className="btn btn-primary">
+                            <Plus size={16} />
+                            <span>Log Inspection</span>
                         </Link>
-
                     </div>
-
                 )}
-
             </div>
 
-
-            {/* =================================================
-                QUALITY RULES
-            ================================================= */}
-
-            <div className="quality-rules">
-
-                <div className="quality-rules-header">
-
-                    <div>
-                        <h3>
-                            Quality Classification
-                        </h3>
-
-                        <p>
-                            Automatic classification based on
-                            defect count
-                        </p>
+            {/* QUALITY SPECIFICATION REFERENCE CARDS */}
+            <div className="card mt-4">
+                <div className="card-header border-bottom">
+                    <div className="card-title-group">
+                        <div className="card-tag">TAPPI / ISO CRITERIA</div>
+                        <h2 className="card-title">Defect Classification Framework</h2>
+                        <p className="card-subtitle">Automated compliance grading applied during inspection entry</p>
                     </div>
-
                 </div>
 
-                <div className="quality-rule-grid">
-
-                    <div className="quality-rule pass-rule">
-
-                        <span className="rule-icon">
-                            ✓
-                        </span>
-
-                        <div>
-
-                            <strong>
-                                PASS
-                            </strong>
-
-                            <span>
-                                0–5 defects
-                            </span>
-
+                <div className="card-content">
+                    <div className="rules-grid">
+                        <div className="rule-card rule-card-pass">
+                            <div className="rule-badge-col">
+                                <CheckCircle2 size={16} className="text-running" />
+                            </div>
+                            <div>
+                                <h4 className="rule-title text-running">PASS (Grade A)</h4>
+                                <p className="rule-desc">0 – 5 defects. Cleared for export packaging and customer dispatch.</p>
+                            </div>
                         </div>
 
-                    </div>
-
-
-                    <div className="quality-rule warning-rule">
-
-                        <span className="rule-icon">
-                            !
-                        </span>
-
-                        <div>
-
-                            <strong>
-                                WARNING
-                            </strong>
-
-                            <span>
-                                6–10 defects
-                            </span>
-
+                        <div className="rule-card rule-card-warning">
+                            <div className="rule-badge-col">
+                                <AlertTriangle size={16} className="text-amber" />
+                            </div>
+                            <div>
+                                <h4 className="rule-title text-amber">WARNING (Grade B)</h4>
+                                <p className="rule-desc">6 – 10 defects. Secondary re-inspection or domestic packaging diversion.</p>
+                            </div>
                         </div>
 
-                    </div>
-
-
-                    <div className="quality-rule fail-rule">
-
-                        <span className="rule-icon">
-                            ×
-                        </span>
-
-                        <div>
-
-                            <strong>
-                                FAIL
-                            </strong>
-
-                            <span>
-                                More than 10 defects
-                            </span>
-
+                        <div className="rule-card rule-card-critical">
+                            <div className="rule-badge-col">
+                                <XCircle size={16} className="text-critical" />
+                            </div>
+                            <div>
+                                <h4 className="rule-title text-critical">FAIL (Reject)</h4>
+                                <p className="rule-desc">&gt; 10 defects. Batch quarantine and automatic routing to repulping chest.</p>
+                            </div>
                         </div>
-
                     </div>
-
                 </div>
-
             </div>
-
         </div>
     );
 }

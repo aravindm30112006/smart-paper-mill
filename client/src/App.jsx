@@ -1,18 +1,33 @@
-import { useEffect, useState } from "react";
-import axios from "axios";
+import { useState, useEffect } from "react";
 import {
     BrowserRouter,
     Routes,
     Route,
-    Link,
+    NavLink,
     useLocation
 } from "react-router-dom";
+import {
+    LayoutDashboard,
+    Cpu,
+    Layers,
+    Droplets,
+    ShieldCheck,
+    Wrench,
+    AlertTriangle,
+    Menu,
+    X,
+    Factory,
+    Activity,
+    Bell,
+    ExternalLink
+} from "lucide-react";
 
+import Dashboard from "./pages/Dashboard";
+import Machines from "./pages/Machines";
 import Production from "./pages/Production";
 import Pulp from "./pages/Pulp";
 import Quality from "./pages/Quality";
 import Maintenance from "./pages/Maintenance";
-import Dashboard from "./pages/Dashboard";
 import Alerts from "./pages/Alerts";
 
 import AddMachine from "./pages/AddMachine";
@@ -24,819 +39,282 @@ import AddMaintenance from "./pages/AddMaintenance";
 import "./App.css";
 
 /* =========================================================
-   MACHINES PAGE
+   SIDEBAR NAVIGATION
 ========================================================= */
 
-function Machines() {
-    const [machines, setMachines] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState("");
-
-    const [editingMachine, setEditingMachine] = useState(null);
-
-    const [formData, setFormData] = useState({
-        machineName: "",
-        productionLine: "",
-        status: "Idle",
-        temperature: "",
-        utilization: "",
-        operatingHours: ""
-    });
-
-    const fetchMachines = async () => {
-        try {
-            setLoading(true);
-            setError("");
-
-            const response = await axios.get(
-                "http://localhost:5000/api/machines"
-            );
-
-            setMachines(response.data);
-        } catch (err) {
-            console.error(err);
-            setError("Unable to load machine data.");
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    useEffect(() => {
-        fetchMachines();
-    }, []);
-
-    const startEdit = (machine) => {
-        setEditingMachine(machine._id);
-
-        setFormData({
-            machineName: machine.machineName,
-            productionLine: machine.productionLine,
-            status: machine.status,
-            temperature: machine.temperature,
-            utilization: machine.utilization,
-            operatingHours: machine.operatingHours
-        });
-
-        window.scrollTo({
-            top: 0,
-            behavior: "smooth"
-        });
-    };
-
-    const cancelEdit = () => {
-        setEditingMachine(null);
-
-        setFormData({
-            machineName: "",
-            productionLine: "",
-            status: "Idle",
-            temperature: "",
-            utilization: "",
-            operatingHours: ""
-        });
-    };
-
-    const handleChange = (e) => {
-        const { name, value } = e.target;
-
-        setFormData((prev) => ({
-            ...prev,
-            [name]: value
-        }));
-    };
-
-    const updateMachine = async (e) => {
-        e.preventDefault();
-
-        try {
-            await axios.put(
-                `http://localhost:5000/api/machines/${editingMachine}`,
-                {
-                    ...formData,
-                    temperature: Number(formData.temperature),
-                    utilization: Number(formData.utilization),
-                    operatingHours: Number(formData.operatingHours)
-                }
-            );
-
-            alert("Machine updated successfully.");
-
-            cancelEdit();
-            fetchMachines();
-        } catch (err) {
-            console.error(err);
-            alert("Failed to update machine.");
-        }
-    };
-
-    const deleteMachine = async (id) => {
-        const confirmDelete = window.confirm(
-            "Are you sure you want to delete this machine?"
-        );
-
-        if (!confirmDelete) return;
-
-        try {
-            await axios.delete(
-                `http://localhost:5000/api/machines/${id}`
-            );
-
-            fetchMachines();
-        } catch (err) {
-            console.error(err);
-            alert("Failed to delete machine.");
-        }
-    };
-
-    const getStatusClass = (status) => {
-        if (status === "Running") return "status-running";
-        if (status === "Maintenance") return "status-maintenance";
-        return "status-idle";
-    };
-
-    if (loading) {
-        return (
-            <div className="loading-state">
-                <div className="loading-spinner"></div>
-                <p>Loading machine data...</p>
-            </div>
-        );
-    }
-
-    return (
-        <div className="page">
-
-            {/* PAGE HEADER */}
-
-            <div className="page-header">
-                <div>
-                    <div className="breadcrumb">
-                        Monitoring / Machines
-                    </div>
-
-                    <h2>Machines</h2>
-
-                    <p>
-                        Monitor and manage paper mill machinery
-                    </p>
-                </div>
-
-                <Link
-                    to="/add-machine"
-                    className="primary-btn"
-                >
-                    <span>+</span>
-                    Add Machine
-                </Link>
-            </div>
-
-            {/* EDIT MACHINE */}
-
-            {editingMachine && (
-                <div className="edit-panel">
-
-                    <div className="edit-panel-header">
-                        <div>
-                            <h3>Edit Machine</h3>
-                            <p>
-                                Update machine configuration and operating
-                                parameters.
-                            </p>
-                        </div>
-
-                        <button
-                            className="close-btn"
-                            onClick={cancelEdit}
-                        >
-                            ×
-                        </button>
-                    </div>
-
-                    <form
-                        className="form-grid"
-                        onSubmit={updateMachine}
-                    >
-
-                        <div className="form-group">
-                            <label>Machine Name</label>
-
-                            <input
-                                type="text"
-                                name="machineName"
-                                value={formData.machineName}
-                                onChange={handleChange}
-                                required
-                            />
-                        </div>
-
-                        <div className="form-group">
-                            <label>Production Line</label>
-
-                            <input
-                                type="text"
-                                name="productionLine"
-                                value={formData.productionLine}
-                                onChange={handleChange}
-                                required
-                            />
-                        </div>
-
-                        <div className="form-group">
-                            <label>Status</label>
-
-                            <select
-                                name="status"
-                                value={formData.status}
-                                onChange={handleChange}
-                            >
-                                <option value="Running">
-                                    Running
-                                </option>
-
-                                <option value="Idle">
-                                    Idle
-                                </option>
-
-                                <option value="Maintenance">
-                                    Maintenance
-                                </option>
-                            </select>
-                        </div>
-
-                        <div className="form-group">
-                            <label>Temperature (°C)</label>
-
-                            <input
-                                type="number"
-                                name="temperature"
-                                value={formData.temperature}
-                                onChange={handleChange}
-                                required
-                            />
-                        </div>
-
-                        <div className="form-group">
-                            <label>Utilization (%)</label>
-
-                            <input
-                                type="number"
-                                name="utilization"
-                                min="0"
-                                max="100"
-                                value={formData.utilization}
-                                onChange={handleChange}
-                                required
-                            />
-                        </div>
-
-                        <div className="form-group">
-                            <label>Operating Hours</label>
-
-                            <input
-                                type="number"
-                                name="operatingHours"
-                                value={formData.operatingHours}
-                                onChange={handleChange}
-                                required
-                            />
-                        </div>
-
-                        <div className="form-actions">
-
-                            <button
-                                type="button"
-                                className="secondary-btn"
-                                onClick={cancelEdit}
-                            >
-                                Cancel
-                            </button>
-
-                            <button
-                                type="submit"
-                                className="primary-btn"
-                            >
-                                Save Changes
-                            </button>
-
-                        </div>
-
-                    </form>
-                </div>
-            )}
-
-            {/* SUMMARY */}
-
-            <div className="summary-grid">
-
-                <div className="summary-card">
-                    <span className="summary-label">
-                        Total Machines
-                    </span>
-
-                    <strong>
-                        {machines.length}
-                    </strong>
-                </div>
-
-                <div className="summary-card">
-                    <span className="summary-label">
-                        Running
-                    </span>
-
-                    <strong className="text-green">
-                        {
-                            machines.filter(
-                                (machine) =>
-                                    machine.status === "Running"
-                            ).length
-                        }
-                    </strong>
-                </div>
-
-                <div className="summary-card">
-                    <span className="summary-label">
-                        Maintenance
-                    </span>
-
-                    <strong className="text-orange">
-                        {
-                            machines.filter(
-                                (machine) =>
-                                    machine.status === "Maintenance"
-                            ).length
-                        }
-                    </strong>
-                </div>
-
-                <div className="summary-card">
-                    <span className="summary-label">
-                        Idle
-                    </span>
-
-                    <strong className="text-gray">
-                        {
-                            machines.filter(
-                                (machine) =>
-                                    machine.status === "Idle"
-                            ).length
-                        }
-                    </strong>
-                </div>
-
-            </div>
-
-            {/* ERROR */}
-
-            {error && (
-                <div className="error-message">
-                    {error}
-                </div>
-            )}
-
-            {/* MACHINE CARDS */}
-
-            <div className="section-header">
-                <div>
-                    <h3>Machine Overview</h3>
-                    <p>
-                        Current operating status and performance
-                    </p>
-                </div>
-
-                <button
-                    className="secondary-btn"
-                    onClick={fetchMachines}
-                >
-                    ↻ Refresh
-                </button>
-            </div>
-
-            <div className="machine-grid">
-
-                {machines.map((machine) => (
-
-                    <div
-                        className="machine-card"
-                        key={machine._id}
-                    >
-
-                        <div className="machine-card-top">
-
-                            <div className="machine-icon">
-                                ⚙
-                            </div>
-
-                            <span
-                                className={`machine-status ${getStatusClass(
-                                    machine.status
-                                )}`}
-                            >
-                                <span className="status-dot-small"></span>
-
-                                {machine.status}
-                            </span>
-
-                        </div>
-
-                        <h3>
-                            {machine.machineName}
-                        </h3>
-
-                        <p className="machine-line">
-                            {machine.productionLine}
-                        </p>
-
-                        <div className="machine-details">
-
-                            <div className="machine-detail">
-                                <span>Temperature</span>
-
-                                <strong>
-                                    {machine.temperature}°C
-                                </strong>
-                            </div>
-
-                            <div className="machine-detail">
-                                <span>Utilization</span>
-
-                                <strong>
-                                    {machine.utilization}%
-                                </strong>
-                            </div>
-
-                            <div className="machine-detail">
-                                <span>Operating Hours</span>
-
-                                <strong>
-                                    {machine.operatingHours} h
-                                </strong>
-                            </div>
-
-                        </div>
-
-                        <div className="utilization-section">
-
-                            <div className="utilization-header">
-                                <span>Utilization</span>
-
-                                <strong>
-                                    {machine.utilization}%
-                                </strong>
-                            </div>
-
-                            <div className="utilization-bar">
-                                <div
-                                    className="utilization-fill"
-                                    style={{
-                                        width: `${machine.utilization}%`
-                                    }}
-                                ></div>
-                            </div>
-
-                        </div>
-
-                        <div className="machine-actions">
-
-                            <button
-                                className="edit-btn"
-                                onClick={() =>
-                                    startEdit(machine)
-                                }
-                            >
-                                Edit
-                            </button>
-
-                            <button
-                                className="delete-btn"
-                                onClick={() =>
-                                    deleteMachine(machine._id)
-                                }
-                            >
-                                Delete
-                            </button>
-
-                        </div>
-
-                    </div>
-
-                ))}
-
-            </div>
-
-            {machines.length === 0 && (
-                <div className="empty-state">
-                    <div className="empty-icon">⚙</div>
-
-                    <h3>No Machines Found</h3>
-
-                    <p>
-                        Add your first paper mill machine to get started.
-                    </p>
-
-                    <Link
-                        to="/add-machine"
-                        className="primary-btn"
-                    >
-                        + Add Machine
-                    </Link>
-                </div>
-            )}
-
-        </div>
-    );
-}
-
-
-/* =========================================================
-   SIDEBAR
-========================================================= */
-
-function Sidebar() {
+function Sidebar({ mobileOpen, setMobileOpen }) {
     const location = useLocation();
 
-    const menuItems = [
+    // Close mobile menu on route change
+    useEffect(() => {
+        setMobileOpen(false);
+    }, [location.pathname, setMobileOpen]);
+
+    const navItems = [
         {
             path: "/",
             label: "Dashboard",
-            icon: "▦"
+            icon: LayoutDashboard,
+            exact: true
         },
         {
             path: "/machines",
-            label: "Machines",
-            icon: "⚙"
+            label: "Machines & Lines",
+            icon: Cpu
         },
         {
             path: "/production",
-            label: "Production",
-            icon: "▤"
+            label: "Production Batches",
+            icon: Layers
         },
         {
             path: "/pulp",
             label: "Pulp Monitoring",
-            icon: "◉"
+            icon: Droplets
         },
         {
             path: "/quality",
-            label: "Quality",
-            icon: "✓"
+            label: "Quality Inspection",
+            icon: ShieldCheck
         },
         {
             path: "/maintenance",
-            label: "Maintenance",
-            icon: "🔧"
+            label: "Maintenance Orders",
+            icon: Wrench
         },
         {
             path: "/alerts",
-            label: "Alerts",
-            icon: "⚠"
+            label: "Active Alerts",
+            icon: AlertTriangle
         }
     ];
 
     return (
-        <aside className="sidebar">
+        <>
+            {/* Mobile backdrop */}
+            {mobileOpen && (
+                <div
+                    className="sidebar-backdrop"
+                    onClick={() => setMobileOpen(false)}
+                    aria-hidden="true"
+                />
+            )}
 
-            <div className="sidebar-brand">
-
-                <div className="sidebar-logo">
-                    🏭
-                </div>
-
-                <div>
-                    <h2>Smart Paper Mill</h2>
-
-                    <span>
-                        Industrial Control
-                    </span>
-                </div>
-
-            </div>
-
-            <div className="sidebar-section-title">
-                MAIN MENU
-            </div>
-
-            <nav className="sidebar-nav">
-
-                {menuItems.map((item) => {
-
-                    const active =
-                        location.pathname === item.path ||
-                        (
-                            item.path !== "/" &&
-                            location.pathname.startsWith(item.path)
-                        );
-
-                    return (
-                        <Link
-                            key={item.path}
-                            to={item.path}
-                            className={
-                                active
-                                    ? "sidebar-link active"
-                                    : "sidebar-link"
-                            }
-                        >
-
-                            <span className="sidebar-icon">
-                                {item.icon}
-                            </span>
-
-                            <span>
-                                {item.label}
-                            </span>
-
-                        </Link>
-                    );
-
-                })}
-
-            </nav>
-
-            <div className="sidebar-bottom">
-
-                <div className="online-card">
-
-                    <span className="online-indicator"></span>
-
-                    <div>
-                        <strong>System Online</strong>
-                        <small>All services connected</small>
+            <aside className={`app-sidebar ${mobileOpen ? "open" : ""}`}>
+                {/* BRAND HEADER */}
+                <div className="sidebar-brand">
+                    <div className="sidebar-logo">
+                        <Factory size={20} className="text-white" />
                     </div>
-
+                    <div className="sidebar-brand-text">
+                        <span className="brand-title">PULP & PAPER</span>
+                        <span className="brand-subtitle">Smart Mill SCADA</span>
+                    </div>
+                    <button
+                        className="sidebar-close-mobile"
+                        onClick={() => setMobileOpen(false)}
+                        aria-label="Close sidebar"
+                    >
+                        <X size={18} />
+                    </button>
                 </div>
 
-            </div>
+                {/* NAVIGATION SECTION */}
+                <div className="sidebar-nav-container">
+                    <div className="sidebar-section-title">OPERATIONS MENU</div>
+                    <nav className="sidebar-nav">
+                        {navItems.map((item) => {
+                            const Icon = item.icon;
+                            const isActive = item.exact
+                                ? location.pathname === item.path
+                                : location.pathname === item.path ||
+                                  (item.path !== "/" && location.pathname.startsWith(item.path));
 
-        </aside>
+                            return (
+                                <NavLink
+                                    key={item.path}
+                                    to={item.path}
+                                    className={`sidebar-nav-item ${isActive ? "active" : ""}`}
+                                >
+                                    <Icon size={17} className="sidebar-nav-icon" />
+                                    <span className="sidebar-nav-label">{item.label}</span>
+                                    {item.path === "/alerts" && (
+                                        <span className="sidebar-badge-dot"></span>
+                                    )}
+                                </NavLink>
+                            );
+                        })}
+                    </nav>
+                </div>
+
+                {/* SIDEBAR FOOTER */}
+                <div className="sidebar-footer">
+                    <div className="system-health-card">
+                        <div className="health-header">
+                            <span className="health-dot-pulse"></span>
+                            <span className="health-title">SCADA Online</span>
+                        </div>
+                        <p className="health-sub">Telemetry Engine v2.4</p>
+                    </div>
+                </div>
+            </aside>
+        </>
     );
 }
 
-
 /* =========================================================
-   TOP HEADER
+   TOP HEADER BAR
 ========================================================= */
 
-function TopHeader() {
-
+function TopHeader({ onToggleMobile }) {
     const location = useLocation();
 
-    const pageTitles = {
-        "/": "Dashboard",
-        "/machines": "Machines",
-        "/production": "Production",
-        "/pulp": "Pulp Monitoring",
-        "/quality": "Quality Inspection",
-        "/maintenance": "Maintenance",
-        "/alerts": "Alerts",
-        "/add-machine": "Add Machine",
-        "/add-production": "Add Production",
-        "/add-pulp": "Add Pulp Data",
-        "/add-quality": "Add Quality Inspection",
-        "/add-maintenance": "Schedule Maintenance"
+    const pageMeta = {
+        "/": {
+            title: "Operations Dashboard",
+            category: "Plant Overview"
+        },
+        "/machines": {
+            title: "Machines & Lines",
+            category: "Asset Monitoring"
+        },
+        "/production": {
+            title: "Production Batches",
+            category: "Manufacturing Runs"
+        },
+        "/pulp": {
+            title: "Pulp Monitoring",
+            category: "Process Telemetry"
+        },
+        "/quality": {
+            title: "Quality Inspection",
+            category: "Assurance"
+        },
+        "/maintenance": {
+            title: "Maintenance Orders",
+            category: "Plant Reliability"
+        },
+        "/alerts": {
+            title: "Active Alerts",
+            category: "Surveillance"
+        },
+        "/add-machine": {
+            title: "Add Machine",
+            category: "Asset Management"
+        },
+        "/add-production": {
+            title: "Add Production",
+            category: "Batch Tracking"
+        },
+        "/add-pulp": {
+            title: "Add Pulp Data",
+            category: "Process Logging"
+        },
+        "/add-quality": {
+            title: "Add Quality Inspection",
+            category: "QA Protocol"
+        },
+        "/add-maintenance": {
+            title: "Add Maintenance",
+            category: "Service Dispatch"
+        }
     };
 
-    const title =
-        pageTitles[location.pathname] || "Smart Paper Mill";
+    const currentMeta = pageMeta[location.pathname] || {
+        title: "Smart Paper Mill",
+        category: "Operations"
+    };
+
+    const todayDate = new Date().toLocaleDateString("en-IN", {
+        weekday: "short",
+        day: "2-digit",
+        month: "short",
+        year: "numeric"
+    });
 
     return (
-        <header className="top-header">
+        <header className="app-top-header">
+            <div className="header-left">
+                <button
+                    className="mobile-menu-trigger"
+                    onClick={onToggleMobile}
+                    aria-label="Open mobile menu"
+                >
+                    <Menu size={20} />
+                </button>
 
-            <div>
-
-                <div className="top-breadcrumb">
-                    Smart Paper Mill / {title}
+                <div className="header-breadcrumbs-block">
+                    <div className="header-breadcrumb">
+                        <span>Smart Paper Mill</span>
+                        <span className="crumb-separator">/</span>
+                        <span>{currentMeta.category}</span>
+                        <span className="crumb-separator">/</span>
+                        <span className="crumb-active">{currentMeta.title}</span>
+                    </div>
                 </div>
-
-                <h1>
-                    {title}
-                </h1>
-
             </div>
 
             <div className="header-right">
-
-                <div className="system-online">
-
-                    <span></span>
-
-                    System Online
-
+                <div className="header-status-badge">
+                    <span className="status-live-dot"></span>
+                    <span className="status-live-text">Plant Network Active</span>
                 </div>
 
-                <div className="header-date">
-                    Industrial Monitoring
+                <div className="header-date-badge">
+                    <span>{todayDate}</span>
                 </div>
-
             </div>
-
         </header>
     );
 }
 
-
 /* =========================================================
-   APP
+   MAIN APP ROUTER
 ========================================================= */
 
 function App() {
+    const [mobileOpen, setMobileOpen] = useState(false);
 
     return (
         <BrowserRouter>
+            <div className="app-shell">
+                <Sidebar mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} />
 
-            <div className="app-layout">
+                <div className="app-main-viewport">
+                    <TopHeader onToggleMobile={() => setMobileOpen(!mobileOpen)} />
 
-                <Sidebar />
-
-                <div className="main-area">
-
-                    <TopHeader />
-
-                    <main className="content">
-
+                    <main className="app-content-body">
                         <Routes>
+                            <Route path="/" element={<Dashboard />} />
+                            <Route path="/machines" element={<Machines />} />
+                            <Route path="/production" element={<Production />} />
+                            <Route path="/pulp" element={<Pulp />} />
+                            <Route path="/quality" element={<Quality />} />
+                            <Route path="/maintenance" element={<Maintenance />} />
+                            <Route path="/alerts" element={<Alerts />} />
 
-                            <Route
-                                path="/"
-                                element={<Dashboard />}
-                            />
-
-                            <Route
-                                path="/machines"
-                                element={<Machines />}
-                            />
-
-                            <Route
-                                path="/production"
-                                element={<Production />}
-                            />
-
-                            <Route
-                                path="/pulp"
-                                element={<Pulp />}
-                            />
-
-                            <Route
-                                path="/quality"
-                                element={<Quality />}
-                            />
-
-                            <Route
-                                path="/maintenance"
-                                element={<Maintenance />}
-                            />
-
-                            <Route
-                                path="/alerts"
-                                element={<Alerts />}
-                            />
-
-                            <Route
-                                path="/add-machine"
-                                element={<AddMachine />}
-                            />
-
-                            <Route
-                                path="/add-production"
-                                element={<AddProduction />}
-                            />
-
-                            <Route
-                                path="/add-pulp"
-                                element={<AddPulp />}
-                            />
-
-                            <Route
-                                path="/add-quality"
-                                element={<AddQuality />}
-                            />
-
-                            <Route
-                                path="/add-maintenance"
-                                element={<AddMaintenance />}
-                            />
-
+                            <Route path="/add-machine" element={<AddMachine />} />
+                            <Route path="/add-production" element={<AddProduction />} />
+                            <Route path="/add-pulp" element={<AddPulp />} />
+                            <Route path="/add-quality" element={<AddQuality />} />
+                            <Route path="/add-maintenance" element={<AddMaintenance />} />
                         </Routes>
-
                     </main>
 
-                    <footer className="app-footer">
-                        <span>
-                            Smart Paper Mill
-                        </span>
-
-                        <span>
-                            Industrial Monitoring System
-                        </span>
-
-                        <span>
-                            MERN Stack
-                        </span>
+                    <footer className="app-system-footer">
+                        <div className="footer-left">
+                            <span className="font-semibold text-primary">Smart Paper Mill Operations</span>
+                            <span className="footer-sep">•</span>
+                            <span>Enterprise SCADA & Manufacturing Execution System</span>
+                        </div>
+                        <div className="footer-right">
+                            <span>System Status: Optimal</span>
+                            <span className="footer-sep">•</span>
+                            <span>v2.4.0-PROD</span>
+                        </div>
                     </footer>
-
                 </div>
-
             </div>
-
         </BrowserRouter>
     );
 }
