@@ -5,7 +5,7 @@
 ![Compliance](https://img.shields.io/badge/Standards-ISO%209001%20%7C%20TAPPI-0f172a?style=for-the-badge)
 ![Vercel](https://img.shields.io/badge/Live%20Demo-Vercel-000000?style=for-the-badge&logo=vercel)
 
-> 🚀 **Live Demo**: [https://smart-paper-mill.vercel.app/](https://smart-paper-mill.vercel.app/)
+> 🚀 **Live Demo**: [https://smart-paper-mill.vercel.app/login](https://smart-paper-mill.vercel.app/login)
 
 A modern, industrial-grade Operations & Manufacturing Execution System (MES) designed for real-world paper mill plants. Provides real-time SCADA surveillance, machine telemetry, batch production tracking, chemical digester pulp monitoring, quality assurance grading, maintenance scheduling, and active tripwire alarms.
 
