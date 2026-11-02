@@ -101,6 +101,22 @@ graph TD
 
 ---
 
+
+---
+
+## Deployment & Hosting (Vercel)
+
+The application is deployed full-stack on **Vercel** with a serverless backend and MongoDB Atlas:
+
+- **Frontend**: React 19 SPA built via Vite, served over high-speed Edge CDN.
+- **Backend API**: Node.js Express serverless function (/api/*) connected to MongoDB Atlas.
+- **Live URL**: [https://smart-paper-mill.vercel.app/](https://smart-paper-mill.vercel.app/)
+
+### Environment Variables on Vercel:
+| Variable | Description | Value |
+|---|---|---|
+| MONGODB_URI | MongoDB Atlas cluster connection string | mongodb+srv://<user>:<password>@cluster.mongodb.net/smart_paper_mill?retryWrites=true&w=majority |
+
 ## Getting Started
 
 ### Prerequisites
