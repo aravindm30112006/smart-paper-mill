@@ -6,24 +6,8 @@
       "destination": "/api/index.js"
     },
     {
-      "source": "/assets/(.*)",
-      "destination": "/client/assets/$1"
-    },
-    {
-      "source": "/vite.svg",
-      "destination": "/client/vite.svg"
-    },
-    {
-      "source": "/favicon.svg",
-      "destination": "/client/favicon.svg"
-    },
-    {
-      "source": "/icons.svg",
-      "destination": "/client/icons.svg"
-    },
-    {
       "source": "/(.*)",
-      "destination": "/client/index.html"
+      "destination": "/index.html"
     }
   ]
 }

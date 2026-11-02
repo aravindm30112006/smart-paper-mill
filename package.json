@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "Smart Paper Mill SCADA - root package for Vercel deployment",
   "scripts": {
-    "build": "cd client && npm install && npm run build"
+    "build": "cd client && npm install && npm run build && node -e \"const fs=require('fs'); fs.cpSync('dist', '../dist', {recursive: true});\""
   },
   "dependencies": {
     "cors": "^2.8.6",
