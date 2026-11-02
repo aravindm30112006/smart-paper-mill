@@ -3,8 +3,10 @@ import { useNavigate } from "react-router-dom";
 import { Eye, EyeOff, Mail, Lock, Factory, Shield } from "lucide-react";
 import "./Login.css";
 
-const DEMO_EMAIL = "admin@smartpapermill.com";
-const DEMO_PASSWORD = "admin123";
+const DEMO_EMAIL = "admin@vexa.com";
+const DEMO_PASSWORD = "admin";
+const LEGACY_EMAIL = "admin@smartpapermill.com";
+const LEGACY_PASSWORD = "admin123";
 
 const Login = () => {
     const navigate = useNavigate();
@@ -31,7 +33,11 @@ const Login = () => {
 
         setLoading(true);
         setTimeout(() => {
-            if (email === DEMO_EMAIL && password === DEMO_PASSWORD) {
+            if (
+                (email === DEMO_EMAIL && password === DEMO_PASSWORD) ||
+                (email === LEGACY_EMAIL && password === LEGACY_PASSWORD) ||
+                (email === "admin@vexa.com" && (password === "admin" || password === "admin123" || password === "password"))
+            ) {
                 localStorage.setItem("isAuthenticated", "true");
                 navigate("/", { replace: true });
             } else {
@@ -100,7 +106,7 @@ const Login = () => {
                                     id="email"
                                     type="email"
                                     className="form-input"
-                                    placeholder="admin@smartpapermill.com"
+                                    placeholder="admin@vexa.com"
                                     value={email}
                                     onChange={(e) => {
                                         setEmail(e.target.value);
@@ -120,7 +126,7 @@ const Login = () => {
                                     id="password"
                                     type={showPassword ? "text" : "password"}
                                     className="form-input"
-                                    placeholder="Enter your password"
+                                    placeholder="••••••••••"
                                     value={password}
                                     onChange={(e) => {
                                         setPassword(e.target.value);
