@@ -2,6 +2,8 @@ const express = require("express");
 const cors = require("cors");
 
 const connectDB = require("./config/db");
+const { seedAdminUser } = require("./config/seed");
+const authRoutes = require("./routes/authRoutes");
 const machineRoutes = require("./routes/machineRoutes");
 const productionRoutes = require("./routes/productionRoutes");
 const pulpRoutes = require("./routes/pulpRoutes");
@@ -12,13 +14,14 @@ const alertRoutes = require("./routes/alertRoutes");
 const app = express();
 
 // Connect to MongoDB
-connectDB();
+connectDB().then(() => { seedAdminUser(); });
 
 // Middleware
 app.use(cors());
 app.use(express.json());
 
 // Routes
+app.use("/api/auth", authRoutes);
 app.use("/api/machines", machineRoutes);
 app.use("/api/production", productionRoutes);
 app.use("/api/pulp", pulpRoutes);

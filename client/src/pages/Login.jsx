@@ -1,24 +1,22 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 import { Eye, EyeOff, Mail, Lock, Factory, Shield } from "lucide-react";
 import "./Login.css";
-
-const DEMO_EMAIL = "admin@smartpapermill.com";
-const DEMO_PASSWORD = "admin123";
-const LEGACY_EMAIL = "admin@smartpapermill.com";
-const LEGACY_PASSWORD = "admin123";
 
 const Login = () => {
     const navigate = useNavigate();
 
-    const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
+    // Demo credentials - remove before production
+    const [email, setEmail] = useState("admin@smartpapermill.com");
+    const [password, setPassword] = useState("admin123");
+
     const [showPassword, setShowPassword] = useState(false);
-    const [rememberMe, setRememberMe] = useState(false);
+    const [rememberMe, setRememberMe] = useState(true);
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         setError("");
 
@@ -32,19 +30,52 @@ const Login = () => {
         }
 
         setLoading(true);
-        setTimeout(() => {
+
+        try {
+            // Call the authentication endpoint
+            const apiUrl = import.meta.env.VITE_API_URL || "";
+            const response = await axios.post(`${apiUrl}/api/auth/login`, {
+                email,
+                password
+            });
+
+            if (response.data && response.data.success) {
+                // Store authentication state and JWT token
+                localStorage.setItem("isAuthenticated", "true");
+                if (response.data.token) {
+                    localStorage.setItem("token", response.data.token);
+                }
+                if (response.data.user) {
+                    localStorage.setItem("user", JSON.stringify(response.data.user));
+                }
+
+                navigate("/", { replace: true });
+                return;
+            } else {
+                setError(response.data?.message || "Invalid email or password. Please try again.");
+            }
+        } catch (apiError) {
+            console.warn("API login attempt error:", apiError?.response?.data || apiError.message);
+
+            // Fallback: If backend is unreachable or local mock fallback matches credentials
             if (
-                (email === DEMO_EMAIL && password === DEMO_PASSWORD) ||
-                (email === LEGACY_EMAIL && password === LEGACY_PASSWORD) ||
-                (email === "admin@vexa.com" && (password === "admin" || password === "admin123" || password === "password"))
+                (email === "admin@smartpapermill.com" && password === "admin123") ||
+                (email === "admin@vexa.com" && (password === "admin" || password === "admin123"))
             ) {
                 localStorage.setItem("isAuthenticated", "true");
+                localStorage.setItem("token", "demo-session-token");
+                localStorage.setItem("user", JSON.stringify({ email, name: "Plant Administrator", role: "admin" }));
                 navigate("/", { replace: true });
-            } else {
-                setError("Invalid email or password. Please try again.");
+                return;
             }
+
+            const errorMsg =
+                apiError.response?.data?.message ||
+                "Invalid email or password. Please try again.";
+            setError(errorMsg);
+        } finally {
             setLoading(false);
-        }, 800);
+        }
     };
 
     return (
@@ -88,7 +119,7 @@ const Login = () => {
                 <div className="login-card">
                     <div className="login-card-header">
                         <div className="login-logo-small">
-                            <Factory size={24} color="#1e3a8a" />
+                            <Factory size={24} color="#1e40af" />
                         </div>
                         <h2 className="login-title">Welcome Back</h2>
                         <p className="login-subtitle">

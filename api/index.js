@@ -1,6 +1,12 @@
 const express = require("express");
 const cors = require("cors");
 const mongoose = require("mongoose");
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
+
+const JWT_SECRET = process.env.JWT_SECRET || "smart_paper_mill_secret_key_2026";
+const DEFAULT_ADMIN_EMAIL = "admin@smartpapermill.com";
+const DEFAULT_ADMIN_PASSWORD = "admin123";
 
 // ─── DB CONNECTION (cached for serverless) ───────────────────────────────────
 
@@ -95,6 +101,40 @@ const PulpData = mongoose.models.PulpData || mongoose.model("PulpData", pulpData
 const QualityInspection = mongoose.models.QualityInspection || mongoose.model("QualityInspection", qualityInspectionSchema);
 const Maintenance = mongoose.models.Maintenance || mongoose.model("Maintenance", maintenanceSchema);
 
+const userSchema = new mongoose.Schema(
+    {
+        email: { type: String, required: true, unique: true, lowercase: true, trim: true },
+        password: { type: String, required: true },
+        role: { type: String, enum: ["admin", "operator", "supervisor"], default: "admin" },
+        name: { type: String, default: "Plant Administrator" }
+    },
+    { timestamps: true }
+);
+
+userSchema.methods.comparePassword = async function (enteredPassword) {
+    return await bcrypt.compare(enteredPassword, this.password);
+};
+
+const User = mongoose.models.User || mongoose.model("User", userSchema);
+
+async function seedAdminUser() {
+    try {
+        const existing = await User.findOne({ email: DEFAULT_ADMIN_EMAIL.toLowerCase() });
+        if (!existing) {
+            const salt = await bcrypt.genSalt(10);
+            const hashedPassword = await bcrypt.hash(DEFAULT_ADMIN_PASSWORD, salt);
+            await User.create({
+                email: DEFAULT_ADMIN_EMAIL.toLowerCase(),
+                password: hashedPassword,
+                role: "admin",
+                name: "Plant Administrator"
+            });
+        }
+    } catch (err) {
+        console.error("Error seeding admin user:", err.message);
+    }
+}
+
 // ─── EXPRESS APP ─────────────────────────────────────────────────────────────
 
 const app = express();
@@ -108,6 +148,64 @@ app.use(async (req, res, next) => {
         next();
     } catch (err) {
         res.status(500).json({ message: "Database connection failed", error: err.message });
+    }
+});
+
+// ─── AUTHENTICATION ──────────────────────────────────────────────────────────
+
+app.post("/api/auth/login", async (req, res) => {
+    try {
+        const { email, password } = req.body;
+        if (!email || !password) {
+            return res.status(400).json({ success: false, message: "Please provide both email and password." });
+        }
+
+        const normalizedEmail = email.trim().toLowerCase();
+        await seedAdminUser();
+
+        let user = await User.findOne({ email: normalizedEmail });
+        if (!user) {
+            return res.status(401).json({ success: false, message: "Invalid email or password. Please try again." });
+        }
+
+        const isMatch = await user.comparePassword(password);
+        if (!isMatch) {
+            return res.status(401).json({ success: false, message: "Invalid email or password. Please try again." });
+        }
+
+        const token = jwt.sign(
+            { id: user._id, email: user.email, role: user.role, name: user.name },
+            JWT_SECRET,
+            { expiresIn: "7d" }
+        );
+
+        return res.status(200).json({
+            success: true,
+            message: "Login successful",
+            token,
+            user: {
+                id: user._id,
+                email: user.email,
+                name: user.name,
+                role: user.role
+            }
+        });
+    } catch (err) {
+        return res.status(500).json({ success: false, message: "Server authentication error", error: err.message });
+    }
+});
+
+app.get("/api/auth/me", async (req, res) => {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+        return res.status(401).json({ success: false, message: "No token provided" });
+    }
+    try {
+        const token = authHeader.split(" ")[1];
+        const decoded = jwt.verify(token, JWT_SECRET);
+        return res.json({ success: true, user: decoded });
+    } catch (err) {
+        return res.status(401).json({ success: false, message: "Invalid or expired token" });
     }
 });
 

@@ -7,9 +7,10 @@
 
 > 🚀 **Live Demo**: [https://smart-paper-mill.vercel.app/login](https://smart-paper-mill.vercel.app/login)
 >
-> 🔑 **Demo Login Credentials**:
+> 🔑 **Demo Login Credentials** *(Pre-filled on page load)*:
 > - **Email Address**: `admin@smartpapermill.com`
 > - **Password**: `admin123`
+> - Simply click **"Sign In"** to access the dashboard directly.
 
 A modern, industrial-grade Operations & Manufacturing Execution System (MES) designed for real-world paper mill plants. Provides real-time SCADA surveillance, machine telemetry, batch production tracking, chemical digester pulp monitoring, quality assurance grading, maintenance scheduling, and active tripwire alarms.
 
@@ -172,7 +173,9 @@ npm run build
 
 | Endpoint | Method | Description |
 | :--- | :---: | :--- |
-| `/api/machines` | `GET`, `POST` | List all machines or register a new unit |
+| /api/auth/login | POST | Authenticate user with bcrypt verification, returns JWT token |
+| /api/auth/me | GET | Verify session token and retrieve user profile |
+| /api/machines | GET, POST | List all machines or register a new unit |
 | `/api/machines/:id` | `PUT`, `DELETE` | Update parameters or remove machine |
 | `/api/production` | `GET`, `POST` | Retrieve production batches or log new run |
 | `/api/production/:id` | `PUT`, `DELETE` | Update or delete batch record |

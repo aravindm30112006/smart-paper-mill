@@ -47,7 +47,7 @@ import "./App.css";
    ========================================================= */
 
 function PrivateRoute({ element }) {
-    const isAuth = localStorage.getItem("isAuthenticated") === "true";
+    const isAuth = localStorage.getItem("isAuthenticated") === "true" || !!localStorage.getItem("token");
     return isAuth ? element : <Navigate to="/login" replace />;
 }
 
@@ -76,6 +76,8 @@ function Sidebar({ mobileOpen, setMobileOpen }) {
 
     const handleLogout = () => {
         localStorage.removeItem("isAuthenticated");
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
         navigate("/login", { replace: true });
     };
 
