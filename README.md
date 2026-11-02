@@ -3,9 +3,9 @@
 ![Smart Paper Mill](https://img.shields.io/badge/Operations-SCADA%20v2.4-1e40af?style=for-the-badge&logo=react)
 ![Stack](https://img.shields.io/badge/Stack-MERN-16a34a?style=for-the-badge)
 ![Compliance](https://img.shields.io/badge/Standards-ISO%209001%20%7C%20TAPPI-0f172a?style=for-the-badge)
-![GitHub Pages](https://img.shields.io/badge/Live%20Demo-GitHub%20Pages-222?style=for-the-badge&logo=github)
+![Vercel](https://img.shields.io/badge/Live%20Demo-Vercel-000000?style=for-the-badge&logo=vercel)
 
-> 🚀 **Live Demo**: [https://aravindm30112006.github.io/smart-paper-mill/](https://aravindm30112006.github.io/smart-paper-mill/)
+> 🚀 **Live Demo**: [https://smart-paper-mill.vercel.app/](https://smart-paper-mill.vercel.app/)
 
 A modern, industrial-grade Operations & Manufacturing Execution System (MES) designed for real-world paper mill plants. Provides real-time SCADA surveillance, machine telemetry, batch production tracking, chemical digester pulp monitoring, quality assurance grading, maintenance scheduling, and active tripwire alarms.
 
