@@ -195,5 +195,3 @@ npm run build
 
 ---
 
-## License
-MIT License. Created for Smart Paper Mill Manufacturing Operations.
