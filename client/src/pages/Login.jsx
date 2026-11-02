@@ -3,8 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { Eye, EyeOff, Mail, Lock, Factory, Shield } from "lucide-react";
 import "./Login.css";
 
-const DEMO_EMAIL = "admin@vexa.com";
-const DEMO_PASSWORD = "admin";
+const DEMO_EMAIL = "admin@smartpapermill.com";
+const DEMO_PASSWORD = "admin123";
 const LEGACY_EMAIL = "admin@smartpapermill.com";
 const LEGACY_PASSWORD = "admin123";
 
@@ -106,7 +106,7 @@ const Login = () => {
                                     id="email"
                                     type="email"
                                     className="form-input"
-                                    placeholder="admin@vexa.com"
+                                    placeholder="admin@smartpapermill.com"
                                     value={email}
                                     onChange={(e) => {
                                         setEmail(e.target.value);

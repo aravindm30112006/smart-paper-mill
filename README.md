@@ -8,8 +8,8 @@
 > 🚀 **Live Demo**: [https://smart-paper-mill.vercel.app/login](https://smart-paper-mill.vercel.app/login)
 >
 > 🔑 **Demo Login Credentials**:
-> - **Email Address**: `admin@vexa.com`
-> - **Password**: `admin`
+> - **Email Address**: `admin@smartpapermill.com`
+> - **Password**: `admin123`
 
 A modern, industrial-grade Operations & Manufacturing Execution System (MES) designed for real-world paper mill plants. Provides real-time SCADA surveillance, machine telemetry, batch production tracking, chemical digester pulp monitoring, quality assurance grading, maintenance scheduling, and active tripwire alarms.
 
