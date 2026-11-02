@@ -41,7 +41,7 @@ function Quality() {
             setLoading(true);
             setError("");
 
-            const response = await axios.get("http://localhost:5000/api/quality");
+            const response = await axios.get(`${import.meta.env.VITE_API_URL || ""}/api/quality`);
             setQuality(response.data || []);
         } catch (err) {
             console.error(err);
@@ -98,7 +98,7 @@ function Quality() {
 
         try {
             await axios.put(
-                `http://localhost:5000/api/quality/${editingQuality}`,
+                `${import.meta.env.VITE_API_URL || ""}/api/quality/${editingQuality}`,
                 {
                     batchId: formData.batchId,
                     paperType: formData.paperType,
@@ -124,7 +124,7 @@ function Quality() {
         if (!confirmDelete) return;
 
         try {
-            await axios.delete(`http://localhost:5000/api/quality/${id}`);
+            await axios.delete(`${import.meta.env.VITE_API_URL || ""}/api/quality/${id}`);
             fetchQuality();
         } catch (err) {
             console.error(err);

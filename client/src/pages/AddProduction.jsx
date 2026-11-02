@@ -22,7 +22,7 @@ function AddProduction() {
     useEffect(() => {
         const fetchMachines = async () => {
             try {
-                const response = await axios.get("http://localhost:5000/api/machines");
+                const response = await axios.get(`${import.meta.env.VITE_API_URL || ""}/api/machines`);
                 setMachines(response.data || []);
             } catch (err) {
                 console.error(err);
@@ -47,7 +47,7 @@ function AddProduction() {
         setSubmitting(true);
 
         try {
-            await axios.post("http://localhost:5000/api/production", {
+            await axios.post(`${import.meta.env.VITE_API_URL || ""}/api/production`, {
                 batchId: formData.batchId,
                 paperType: formData.paperType,
                 quantity: Number(formData.quantity),

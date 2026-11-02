@@ -43,8 +43,8 @@ function Maintenance() {
         try {
             setLoading(true);
             const [maintenanceRes, machinesRes] = await Promise.all([
-                axios.get("http://localhost:5000/api/maintenance"),
-                axios.get("http://localhost:5000/api/machines")
+                axios.get(`${import.meta.env.VITE_API_URL || ""}/api/maintenance`),
+                axios.get(`${import.meta.env.VITE_API_URL || ""}/api/machines`)
             ]);
 
             setMaintenance(maintenanceRes.data || []);
@@ -115,7 +115,7 @@ function Maintenance() {
 
         try {
             await axios.put(
-                `http://localhost:5000/api/maintenance/${editingId}`,
+                `${import.meta.env.VITE_API_URL || ""}/api/maintenance/${editingId}`,
                 {
                     ...formData,
                     completedDate: formData.completedDate || null
@@ -137,7 +137,7 @@ function Maintenance() {
         if (!confirmDelete) return;
 
         try {
-            await axios.delete(`http://localhost:5000/api/maintenance/${id}`);
+            await axios.delete(`${import.meta.env.VITE_API_URL || ""}/api/maintenance/${id}`);
             fetchData();
         } catch (err) {
             console.error(err);

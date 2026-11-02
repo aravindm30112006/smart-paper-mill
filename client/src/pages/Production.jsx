@@ -43,7 +43,7 @@ function Production() {
             setError("");
 
             const response = await axios.get(
-                "http://localhost:5000/api/production"
+                `${import.meta.env.VITE_API_URL || ""}/api/production`
             );
 
             setProduction(response.data || []);
@@ -58,7 +58,7 @@ function Production() {
     const fetchMachines = async () => {
         try {
             const response = await axios.get(
-                "http://localhost:5000/api/machines"
+                `${import.meta.env.VITE_API_URL || ""}/api/machines`
             );
             setMachines(response.data || []);
         } catch (err) {
@@ -117,7 +117,7 @@ function Production() {
 
         try {
             await axios.put(
-                `http://localhost:5000/api/production/${editingProduction}`,
+                `${import.meta.env.VITE_API_URL || ""}/api/production/${editingProduction}`,
                 {
                     batchId: formData.batchId,
                     paperType: formData.paperType,
@@ -142,7 +142,7 @@ function Production() {
         if (!confirmDelete) return;
 
         try {
-            await axios.delete(`http://localhost:5000/api/production/${id}`);
+            await axios.delete(`${import.meta.env.VITE_API_URL || ""}/api/production/${id}`);
             fetchProduction();
         } catch (err) {
             console.error(err);

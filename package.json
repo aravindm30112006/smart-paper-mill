@@ -1,0 +1,14 @@
+{
+  "name": "smart-paper-mill",
+  "version": "1.0.0",
+  "description": "Smart Paper Mill SCADA - root package for Vercel deployment",
+  "scripts": {
+    "build": "cd client && npm install && npm run build"
+  },
+  "dependencies": {
+    "cors": "^2.8.6",
+    "dotenv": "^18.0.4",
+    "express": "^5.2.1",
+    "mongoose": "^9.10.2"
+  }
+}

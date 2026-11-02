@@ -46,7 +46,7 @@ function Machines() {
             setError("");
 
             const response = await axios.get(
-                "http://localhost:5000/api/machines"
+                `${import.meta.env.VITE_API_URL || ""}/api/machines`
             );
 
             setMachines(response.data);
@@ -107,7 +107,7 @@ function Machines() {
 
         try {
             await axios.put(
-                `http://localhost:5000/api/machines/${editingMachine}`,
+                `${import.meta.env.VITE_API_URL || ""}/api/machines/${editingMachine}`,
                 {
                     ...formData,
                     temperature: Number(formData.temperature),
@@ -133,7 +133,7 @@ function Machines() {
 
         try {
             await axios.delete(
-                `http://localhost:5000/api/machines/${id}`
+                `${import.meta.env.VITE_API_URL || ""}/api/machines/${id}`
             );
 
             fetchMachines();

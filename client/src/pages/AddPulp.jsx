@@ -33,7 +33,7 @@ function AddPulp() {
         setSubmitting(true);
 
         try {
-            await axios.post("http://localhost:5000/api/pulp", {
+            await axios.post(`${import.meta.env.VITE_API_URL || ""}/api/pulp`, {
                 batchId: formData.batchId,
                 temperature: Number(formData.temperature),
                 pressure: Number(formData.pressure),

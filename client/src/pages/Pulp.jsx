@@ -44,7 +44,7 @@ function Pulp() {
             setLoading(true);
             setError("");
 
-            const response = await axios.get("http://localhost:5000/api/pulp");
+            const response = await axios.get(`${import.meta.env.VITE_API_URL || ""}/api/pulp`);
             setPulpData(response.data || []);
         } catch (err) {
             console.error(err);
@@ -102,7 +102,7 @@ function Pulp() {
         e.preventDefault();
 
         try {
-            await axios.put(`http://localhost:5000/api/pulp/${editingPulp}`, {
+            await axios.put(`${import.meta.env.VITE_API_URL || ""}/api/pulp/${editingPulp}`, {
                 batchId: formData.batchId,
                 temperature: Number(formData.temperature),
                 pressure: Number(formData.pressure),
@@ -127,7 +127,7 @@ function Pulp() {
         if (!confirmDelete) return;
 
         try {
-            await axios.delete(`http://localhost:5000/api/pulp/${id}`);
+            await axios.delete(`${import.meta.env.VITE_API_URL || ""}/api/pulp/${id}`);
             fetchPulpData();
         } catch (err) {
             console.error(err);

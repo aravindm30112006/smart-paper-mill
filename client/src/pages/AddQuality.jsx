@@ -32,7 +32,7 @@ function AddQuality() {
         setSubmitting(true);
 
         try {
-            await axios.post("http://localhost:5000/api/quality", {
+            await axios.post(`${import.meta.env.VITE_API_URL || ""}/api/quality`, {
                 batchId: formData.batchId,
                 paperType: formData.paperType,
                 thickness: Number(formData.thickness),

@@ -34,7 +34,7 @@ function Alerts() {
     const fetchAlerts = async () => {
         try {
             setLoading(true);
-            const response = await axios.get("http://localhost:5000/api/alerts");
+            const response = await axios.get(`${import.meta.env.VITE_API_URL || ""}/api/alerts`);
             setAlertData(response.data || { totalAlerts: 0, criticalAlerts: 0, warningAlerts: 0, alerts: [] });
             setError("");
         } catch (err) {

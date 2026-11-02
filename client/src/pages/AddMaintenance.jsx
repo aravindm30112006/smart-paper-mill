@@ -23,7 +23,7 @@ function AddMaintenance() {
     useEffect(() => {
         const fetchMachines = async () => {
             try {
-                const response = await axios.get("http://localhost:5000/api/machines");
+                const response = await axios.get(`${import.meta.env.VITE_API_URL || ""}/api/machines`);
                 setMachines(response.data || []);
             } catch (err) {
                 console.error(err);
@@ -48,7 +48,7 @@ function AddMaintenance() {
         setSubmitting(true);
 
         try {
-            await axios.post("http://localhost:5000/api/maintenance", {
+            await axios.post(`${import.meta.env.VITE_API_URL || ""}/api/maintenance`, {
                 machine: formData.machine,
                 maintenanceType: formData.maintenanceType,
                 description: formData.description,

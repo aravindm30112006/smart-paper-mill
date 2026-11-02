@@ -61,11 +61,11 @@ function Dashboard() {
                 maintenanceRes,
                 alertsRes
             ] = await Promise.all([
-                axios.get("http://localhost:5000/api/machines"),
-                axios.get("http://localhost:5000/api/production"),
-                axios.get("http://localhost:5000/api/quality"),
-                axios.get("http://localhost:5000/api/maintenance"),
-                axios.get("http://localhost:5000/api/alerts")
+                axios.get(`${import.meta.env.VITE_API_URL || ""}/api/machines`),
+                axios.get(`${import.meta.env.VITE_API_URL || ""}/api/production`),
+                axios.get(`${import.meta.env.VITE_API_URL || ""}/api/quality`),
+                axios.get(`${import.meta.env.VITE_API_URL || ""}/api/maintenance`),
+                axios.get(`${import.meta.env.VITE_API_URL || ""}/api/alerts`)
             ]);
 
             setMachines(machinesRes.data || []);

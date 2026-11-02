@@ -32,7 +32,7 @@ function AddMachine() {
         setSubmitting(true);
 
         try {
-            await axios.post("http://localhost:5000/api/machines", {
+            await axios.post(`${import.meta.env.VITE_API_URL || ""}/api/machines`, {
                 machineName: formData.machineName,
                 productionLine: formData.productionLine,
                 status: formData.status,
